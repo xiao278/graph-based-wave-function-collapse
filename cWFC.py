@@ -139,10 +139,10 @@ class WaveFunctionCollapse:
         while len(self.uncertain_nodes) > 0:
             success = self.propagate()
             if not success:
-                self.load_initial()
                 # print("Fail---------")
                 # for name, node in self.nodes.items():
                 #     print(node)
+                self.load_initial()
                 
 
     
