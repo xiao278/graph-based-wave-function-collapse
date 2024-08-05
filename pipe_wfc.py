@@ -1,5 +1,4 @@
 from cWFC import *
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -15,13 +14,7 @@ class PipeGen:
             'F': ['N','V'], # F: NNNNVNNNNVNVVNNN
             'G': ['N','H'], # G: (NNNNNHNNHNNHHHN)^T
         }
-        # states = ['0','1','2','3']
-        # adjacencyRules = {
-        #     '0': ['0'],
-        #     '1': ['1'],
-        #     '2': ['2'],
-        #     '3': ['3'],
-        # }
+
         self.wfc = WaveFunctionCollapse(states, adjacencyRules)
         self.size = size # (row, column)
 
