@@ -74,8 +74,7 @@ class PipeGen:
                     mat[row * 3: row * 3 + 3, col * 3 + 1,:] = (0,0,0)
 
         plt.imshow(mat)
-        plt.waitforbuttonpress()
-             
+        plt.waitforbuttonpress()            
 
 if __name__ == "__main__":
     p = PipeGen((25,25))

@@ -1,0 +1,17 @@
+command: kernprof -v -l "/Users/kevinxiao/Documents/Programming/QGC related stuff/Pipe generation/GraphWFC/checkerboard_wfc.py"
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   111                                               @profile
+   112                                               def assert_adjacency_rule(self, name:str, state:str):
+   113     10000       1676.0      0.2      0.0          assert state in self.states
+   114     10000      11201.0      1.1      0.0          neighbors = self.adjacencyList[name]
+   115     10000       1303.0      0.1      0.0          ban_states = self.adjacencyBan[state]
+   116                                           
+   117     39600       6835.0      0.2      0.0          for nb in neighbors:
+   118     39600       6476.0      0.2      0.0              for s in ban_states:
+   119     39600      10838.0      0.3      0.0                  nb_node = self.nodes[nb]
+   120     19800       3014.0      0.2      0.0                  if nb_node.collapsed is None:
+   121     19800      13145.0      0.7      0.0                      nb_node.update_possible_states(s)
+   122                                           
+   123     10000   41449812.0   4145.0     99.9          heapify(self.uncertain_nodes)
