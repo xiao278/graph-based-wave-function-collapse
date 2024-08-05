@@ -65,7 +65,7 @@ class PipeGen:
              
 
 if __name__ == "__main__":
-    p = PipeGen((4,4))
+    p = PipeGen((10,10))
     p.generate()
     print(p)
     # mat = p.as_mat().astype(int)

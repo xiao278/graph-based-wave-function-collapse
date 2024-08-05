@@ -3,7 +3,7 @@ import random
 import copy
 
 class Node:
-    def __init__(self, name:str, states:'list[str]', assign:'str|tuple[str]|None'=None):
+    def __init__(self, name:str, states:'list[str]', assign:'str|tuple[str]|None'=None, priority_modifier:int=0):
         states = states.copy()
         self.possible_states:dict[str,bool] = dict()
         if type(assign) == tuple:
@@ -15,11 +15,12 @@ class Node:
             for s in states:
                 self.possible_states[s] = (assign is None)
         self.collapsed:str|None = (assign if type(assign) == str else None)
-        self.state_count:int = len(states) - len(assign) if type(assign) == tuple else len(states)
+        self.state_count:int = len(assign) if (type(assign) == tuple) else len(states)
+        self.priority_modifier:int = priority_modifier
         self.name = name
     
     def num_states(self) -> int:
-        return self.state_count + (0 if self.collapsed is None else len(self.possible_states))
+        return self.state_count + self.priority_modifier + (0 if self.collapsed is None else len(self.possible_states))
     
     def update_possible_states(self, state:str) -> bool:
         # returns True if the possible state is updated, otherwise false
@@ -51,6 +52,9 @@ class Node:
 
     def __lt__(self, node:'Node'):
         return self.num_states() < node.num_states()
+    
+    def __str__(self):
+        return "{%s | %s | %d}" % (self.name, self.collapsed, self.num_states())
         
 class WaveFunctionCollapse:
     def __init__(self, states:'list[str]', adjacencyAllow:'dict[str,list[str]]'):
@@ -71,8 +75,9 @@ class WaveFunctionCollapse:
                 adj_ban_states.remove(adj_state)
             self.adjacencyBan[state] = adj_ban_states
     
-    def addNode(self, name:str, assign:'str|tuple[str]|None'=None):
-        node = Node(name, self.states, assign)
+    def addNode(self, name:str, assign:'str|tuple[str]|None'=None, priority_modifier:int=0):
+        # positive priority modifier means lower priority
+        node = Node(name, self.states, assign, priority_modifier)
         self.nodes[name] = node
         self.adjacencyList[name] = set()
         if type(assign) != str:
@@ -115,23 +120,19 @@ class WaveFunctionCollapse:
                     nb_node.update_possible_states(s)
 
         heapify(self.uncertain_nodes)
-                    
-
-
-
 
     def propagate(self):
+        node = heappop(self.uncertain_nodes)
+        name = node.name
         try:
-            node = heappop(self.uncertain_nodes)
-            name = node.name
-
             success = node.collapse()
             if not success:
                 print("Collapse of node %s Failed (Already collapsed)" % (name))
             else:
                 self.assert_adjacency_rule(name, node.collapsed)
             return True
-        except:
+        except Exception as error:
+            # print(error, node)
             return False
     
     def solve(self):
@@ -139,7 +140,10 @@ class WaveFunctionCollapse:
             success = self.propagate()
             if not success:
                 self.load_initial()
-                print("Conflict detected, restarting...")
+                # print("Fail---------")
+                # for name, node in self.nodes.items():
+                #     print(node)
+                
 
     
 
