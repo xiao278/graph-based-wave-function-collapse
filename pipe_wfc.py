@@ -62,12 +62,32 @@ class PipeGen:
 
     def __str__(self):
         return self.as_mat().__str__()
+
+    def show_img(self):
+        rows, cols = self.size
+        mat = np.full((rows * 3, cols * 3, 3), (255,255,255))
+        for row in range(rows):
+            for col in range(cols):
+                if row % 2 == col % 2:
+                    mat[row * 3: row * 3 + 3, col * 3: col * 3 + 3,:] = (213,223,249)
+                name = "%d,%d" % (row, col)
+                pipe_type = self.wfc.nodes[name].collapsed
+                assert pipe_type is not None
+                if pipe_type == 'H' or pipe_type == 'C':
+                    # draw a horizontal line
+                    mat[row * 3 + 1, col * 3: col * 3 + 3,:] = (0,0,0)
+                if pipe_type == 'V' or pipe_type == 'C':
+                    # draw a vertical line
+                    mat[row * 3: row * 3 + 3, col * 3 + 1,:] = (0,0,0)
+
+        plt.imshow(mat)
+        plt.waitforbuttonpress()
              
 
 if __name__ == "__main__":
-    p = PipeGen((10,10))
+    p = PipeGen((25,25))
     p.generate()
-    print(p)
+    p.show_img()
     # mat = p.as_mat().astype(int)
     # np.savetxt("classic WFC/result_save.txt", mat, fmt="%10.0f")
     # plt.imshow(mat)
