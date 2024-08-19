@@ -56,6 +56,43 @@ class Node:
     def __str__(self):
         return "{%s | %s | %d}" % (self.name, self.collapsed, self.num_states())
         
+
+class NodeSort:
+    def __init__(self, states:'list[str]'):
+        self.states = states
+        self.node_bucket:dict[str,int] = dict()
+        self.buckets:tuple[set[str]] = tuple(set() for _ in range(len(states) + 1)) # buckets to store node names in
+
+    def add(self, node:Node):
+        assert node.name not in self.node_bucket
+        possible_states = max(min(node.num_states(), len(self.states)), 0) # clamp value so no index out of range
+        self.buckets[possible_states] = node.name
+        self.node_bucket[node.name] = possible_states
+
+    def remove(self, node_name:str):
+        if node_name in self.node_bucket:
+            bucket = self.node_bucket[node_name]
+            del self.node_bucket[node_name]
+            self.buckets[bucket].remove(node_name)
+    
+    def update(self, node:Node):
+        assert node.name in self.node_bucket
+        bucket = self.node_bucket[node.name]
+        self.buckets[bucket].remove(node.name)
+        new_bucket = max(min(node.num_states(), len(self.states)), 0)
+        self.node_bucket[node.name] = new_bucket
+        self.buckets[new_bucket] = node.name
+
+    def pop(self):
+        for bucket in self.buckets:
+            if len(bucket) != 0:
+                item = bucket.pop()
+                del self.node_bucket[item]
+
+
+
+        
+
 class WaveFunctionCollapse:
     def __init__(self, states:'list[str]', adjacencyAllow:'dict[str,list[str]]'):
         self.states = states.copy()
@@ -108,6 +145,7 @@ class WaveFunctionCollapse:
             if node.collapsed is None:
                 heappush(self.uncertain_nodes, node)
 
+    # @profile
     def assert_adjacency_rule(self, name:str, state:str):
         assert state in self.states
         neighbors = self.adjacencyList[name]
@@ -148,31 +186,9 @@ class WaveFunctionCollapse:
     
 
 
-# if __name__ == '__main__':
-    # states = ['N','H','C','V']
-    # adjacencyRules = {
-    #     'N': ['N','H','V'],
-    #     'H': ['H','N','C'],
-    #     'V': ['V','N','C'],
-    #     'C': ['C','V','H']
-    # }
-    # wfc = WaveFunctionCollapse(states, adjacencyRules)
-    # wfc.addNode("frog")
-    # wfc.addNode("toad")
-    # wfc.addEdge("frog", "toad")
-    # wfc.solve()
-    # for name, node in wfc.nodes.items():
-    #     print(node.collapsed)
-    
-    # n1 = Node(states)
-    # n2 = Node(states)
-    # print(n1.num_states())
-    # print(n1.update_possible_states(states[0]))
-    # print(n1.num_states())
-    # print(n1.collapse())
-    # print(n1.collapsed)
-    # print(n2.collapse())
-    # print(n2.collapsed)
+if __name__ == '__main__':
+    NodeSort(['a','b','c'])
+    pass
 
 
 
