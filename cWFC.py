@@ -66,7 +66,7 @@ class NodeSort:
     def add(self, node:Node):
         assert node.name not in self.node_bucket
         possible_states = max(min(node.num_states(), len(self.states)), 0) # clamp value so no index out of range
-        self.buckets[possible_states] = node.name
+        self.buckets[possible_states].add(node.name)
         self.node_bucket[node.name] = possible_states
 
     def remove(self, node_name:str):
@@ -81,14 +81,17 @@ class NodeSort:
         self.buckets[bucket].remove(node.name)
         new_bucket = max(min(node.num_states(), len(self.states)), 0)
         self.node_bucket[node.name] = new_bucket
-        self.buckets[new_bucket] = node.name
+        self.buckets[new_bucket].add(node.name)
 
-    def pop(self):
+    def pop(self) -> str:
         for bucket in self.buckets:
             if len(bucket) != 0:
                 item = bucket.pop()
                 del self.node_bucket[item]
-
+                return item
+    
+    def empty(self):
+        return len(self.node_bucket) == 0
 
 
         
@@ -97,13 +100,13 @@ class WaveFunctionCollapse:
     def __init__(self, states:'list[str]', adjacencyAllow:'dict[str,list[str]]'):
         self.states = states.copy()
         self.nodes:dict[str,Node] = dict()
-        self.uncertain_nodes:list[Node] = []
+        self.uncertain_nodes = NodeSort(states)
         self.adjacencyList:dict[str,set[str]] = dict()
         self.adjacencyAllow = adjacencyAllow.copy()
         self.adjacencyBan:dict[str,list[str]] = dict() # what states are not allowed to be adjacent to each other, the inverse of adj
         
         self.nodes_initial:dict[str,Node] = None
-        self.uncertain_nodes_initial:list[Node] = None
+        self.uncertain_nodes_initial:NodeSort = None
 
         for state, adj_states in self.adjacencyAllow.items():
             # compile the list of banned states not allowed to be adjacent to each other
@@ -118,7 +121,7 @@ class WaveFunctionCollapse:
         self.nodes[name] = node
         self.adjacencyList[name] = set()
         if type(assign) != str:
-            heappush(self.uncertain_nodes, node)
+            self.uncertain_nodes.add(node)
 
     def addEdge(self, node1_name:str, node2_name:str):
         assert node1_name in self.nodes
@@ -133,17 +136,11 @@ class WaveFunctionCollapse:
 
     def save_initial(self):
         self.nodes_initial = copy.deepcopy(self.nodes)
-        self.uncertain_nodes_initial = []
-        for name, node in self.nodes_initial.items():
-            if node.collapsed is None:
-                heappush(self.uncertain_nodes_initial, node)
+        self.uncertain_nodes_initial = copy.deepcopy(self.uncertain_nodes)
 
     def load_initial(self):
         self.nodes = copy.deepcopy(self.nodes_initial)
-        self.uncertain_nodes = []
-        for name, node in self.nodes.items():
-            if node.collapsed is None:
-                heappush(self.uncertain_nodes, node)
+        self.uncertain_nodes = copy.deepcopy(self.uncertain_nodes_initial)
 
     # @profile
     def assert_adjacency_rule(self, name:str, state:str):
@@ -156,12 +153,11 @@ class WaveFunctionCollapse:
                 nb_node = self.nodes[nb]
                 if nb_node.collapsed is None:
                     nb_node.update_possible_states(s)
-
-        heapify(self.uncertain_nodes)
+                    self.uncertain_nodes.update(nb_node)
 
     def propagate(self):
-        node = heappop(self.uncertain_nodes)
-        name = node.name
+        name = self.uncertain_nodes.pop()
+        node:Node = self.nodes[name]
         try:
             success = node.collapse()
             if not success:
@@ -174,7 +170,7 @@ class WaveFunctionCollapse:
             return False
     
     def solve(self):
-        while len(self.uncertain_nodes) > 0:
+        while not self.uncertain_nodes.empty():
             success = self.propagate()
             if not success:
                 # print("Fail---------")
