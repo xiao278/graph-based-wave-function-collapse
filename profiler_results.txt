@@ -1,4 +1,5 @@
-command: kernprof -v -l "/Users/kevinxiao/Documents/Programming/QGC related stuff/Pipe generation/GraphWFC/checkerboard_wfc.py"
+command:
+kernprof -v -l "/Users/kevinxiao/Documents/Programming/QGC related stuff/Pipe generation/GraphWFC/checkerboard_wfc.py"
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================

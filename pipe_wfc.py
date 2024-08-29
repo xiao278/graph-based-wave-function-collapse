@@ -1,6 +1,7 @@
 from cWFC import *
 import numpy as np
 import matplotlib.pyplot as plt
+import graphviz
 
 class PipeGen:
     def __init__(self, size:tuple[int]):
@@ -74,12 +75,24 @@ class PipeGen:
                     mat[row * 3: row * 3 + 3, col * 3 + 1,:] = (0,0,0)
 
         plt.imshow(mat)
-        plt.waitforbuttonpress()            
+        plt.tick_params(left = False, right = False , labelleft = False , 
+                labelbottom = False, bottom = False) 
+        plt.waitforbuttonpress()
+
+    def visualize_rules(self):
+        dot = graphviz.Graph(strict=True)
+        for state in self.wfc.states:
+            dot.node(state)
+        for state, adj_states in self.wfc.adjacencyAllow.items():
+            for adj_state in adj_states:
+                dot.edge(state, adj_state, color="gray")
+        dot.render(view=True)
 
 if __name__ == "__main__":
-    p = PipeGen((25,25))
+    p = PipeGen((100,100))
     p.generate()
     p.show_img()
+    # p.visualize_rules()
     # mat = p.as_mat().astype(int)
     # np.savetxt("classic WFC/result_save.txt", mat, fmt="%10.0f")
     # plt.imshow(mat)

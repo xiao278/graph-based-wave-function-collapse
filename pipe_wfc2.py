@@ -111,6 +111,6 @@ class PipeGen:
         plt.waitforbuttonpress()            
 
 if __name__ == "__main__":
-    p = PipeGen((12,12), True)
+    p = PipeGen((10,10), True)
     p.generate()
     p.show_img()
